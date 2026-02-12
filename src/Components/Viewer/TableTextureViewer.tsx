@@ -23,7 +23,7 @@ export const TableTextureViewer = observer(() => {
   );
 
   const renderGrid = (items: any[]) => (
-    <div className="grid grid-cols-3 gap-6 text-center">
+    <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-4 md:gap-6 text-center">
       {items.map((texture) => {
         const isSelected = selected?.id === texture.id;
 
@@ -39,7 +39,8 @@ export const TableTextureViewer = observer(() => {
             <div
               className={`
                 relative rounded-2xl bg-gray-100
-                h-32 flex items-center justify-center
+                aspect-square
+                flex items-center justify-center
                 transition
                 ${isSelected ? "ring-2 ring-gray-900" : ""}
               `}
@@ -60,7 +61,7 @@ export const TableTextureViewer = observer(() => {
             </div>
 
             {/* Name */}
-            <p className="mt-2 text-sm text-gray-900 font-medium">
+            <p className="mt-2 text-xs sm:text-sm text-gray-900 font-medium">
               {texture.name}
             </p>
           </div>
@@ -70,14 +71,18 @@ export const TableTextureViewer = observer(() => {
   );
 
   return (
-    <div className="flex  w-full">
+    <div className="flex w-full">
       {/* ================= RIGHT SIDE PANEL ================= */}
-      <div className="w-full bg-white border-l border-gray-200">
-        <div className="px-6 ">
+      <div className="w-full bg-white border-l border-gray-200 overflow-y-auto">
+        <div className="px-4 md:px-6 py-4 md:py-5 space-y-8">
+          <h2 data-nav-anchor className="text-lg md:text-xl font-semibold text-gray-900">
+            Choose Top Colour
+          </h2>
+
           {/* NATURAL */}
           {naturalTextures.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-6 text-gray-900">
+              <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-gray-900">
                 Natural
               </h2>
               {renderGrid(naturalTextures)}
@@ -87,7 +92,7 @@ export const TableTextureViewer = observer(() => {
           {/* POLISH */}
           {polishTextures.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-6 text-gray-900">
+              <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-gray-900">
                 Polish
               </h2>
               {renderGrid(polishTextures)}
@@ -97,7 +102,7 @@ export const TableTextureViewer = observer(() => {
           {/* SILK */}
           {silkTextures.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-6 text-gray-900">
+              <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-gray-900">
                 Silk
               </h2>
               {renderGrid(silkTextures)}

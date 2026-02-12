@@ -30,7 +30,7 @@ export const ChairCountViewer = observer(() => {
     <div className="w-full bg-white border-l border-gray-200 p-6">
       {/* Header with info button */}
       <div className="flex items-center gap-3 mb-6">
-        <h2 className="text-2xl font-semibold">
+        <h2 data-nav-anchor className="text-2xl font-semibold">
           Select Chair Quantity
         </h2>
 

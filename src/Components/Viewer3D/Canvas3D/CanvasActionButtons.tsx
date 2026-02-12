@@ -9,7 +9,6 @@ type Props = {
 
 export const CanvasActionButtons = observer(({ containerRef }: Props) => {
   const stateManager = useMainContext();
-  const [showInfo, setShowInfo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const design = stateManager.designManager;
@@ -108,7 +107,7 @@ export const CanvasActionButtons = observer(({ containerRef }: Props) => {
         }
       }
     } catch {
-      // Fall through to email draft fallback.
+      // fallback to email
     }
 
     window.location.href = `mailto:?subject=${encodeURIComponent(
@@ -130,26 +129,40 @@ export const CanvasActionButtons = observer(({ containerRef }: Props) => {
 
   return (
     <>
-      <div className="absolute left-3 top-3 z-30 flex flex-col gap-2">
+      {/* Info button with hover popup (bottom-left) */}
+      <div className="absolute left-4 bottom-4 z-30 group">
         <button
           type="button"
           aria-label="Texture info"
           title="Texture info"
-          onClick={() => setShowInfo(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white/95 text-sm font-semibold text-gray-700 shadow-sm backdrop-blur-sm"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
         >
           i
         </button>
 
+        {/* Hover popup */}
+        <div className="pointer-events-none absolute bottom-6 left-15 w-64 opacity-0 translate-y-2 rounded-xl bg-white p-3 shadow-xl border border-gray-200 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
+          <div className="text-sm font-semibold text-gray-900">
+            {selectedTexture?.name || "No texture selected"}
+          </div>
+          <p className="mt-1 text-xs text-gray-700">
+            {selectedTexture?.description ||
+              "Texture description is not available."}
+          </p>
+        </div>
+      </div>
+
+      {/* Top-right action buttons */}
+      <div className="absolute right-4 top-4 z-30 flex gap-2">
         <button
           type="button"
           aria-label="Save"
           title="Save"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white/95 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm disabled:opacity-60"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition disabled:opacity-60"
         >
-          {isSaving ? "..." : "Save"}
+          💾
         </button>
 
         <button
@@ -157,9 +170,9 @@ export const CanvasActionButtons = observer(({ containerRef }: Props) => {
           aria-label="Share"
           title="Share"
           onClick={handleShare}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white/95 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
         >
-          Share
+          🔗
         </button>
 
         <button
@@ -167,40 +180,11 @@ export const CanvasActionButtons = observer(({ containerRef }: Props) => {
           aria-label="Fullscreen"
           title="Fullscreen"
           onClick={handleFullscreen}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white/95 text-xs font-semibold text-gray-700 shadow-sm backdrop-blur-sm"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
         >
-          Full
+          ⛶
         </button>
       </div>
-
-      {showInfo && (
-        <div
-          className="absolute inset-0 z-40 flex items-center justify-center bg-black/35 px-4"
-          onClick={() => setShowInfo(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-xl bg-white p-4 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-2 text-lg font-semibold text-gray-900">
-              {selectedTexture?.name || "No texture selected"}
-            </div>
-            <p className="text-sm text-gray-700">
-              {selectedTexture?.description ||
-                "Texture description is not available."}
-            </p>
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowInfo(false)}
-                className="rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 });

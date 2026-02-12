@@ -24,7 +24,7 @@ export class DesignManager {
   chairColorManager : ChairColorManager 
   chairCountManager: ChairCountManager;
   pricingManager: PricingManager;
-  cameraView: CameraViewType = "rightSide";
+  cameraView: CameraViewType = "front";
 
 
   constructor(stateManager: StateManager) {

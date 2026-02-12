@@ -1,4 +1,5 @@
 import type { ChairTransform } from "../types";
+import * as THREE from "three"
 
 function rectangleLikeLayout(
   count: number,
@@ -224,42 +225,99 @@ export function squareLayout(
   return result;
 }
 
+export function ellipseLayout(
+  count: number,
+  tableWidth: number,
+  tableLength: number
+): ChairTransform[] {
+  const result: ChairTransform[] = [];
 
+  if (count <= 0) return result;
+
+  const chairOffset = 0.25;
+  const radiusX = tableWidth / 2 + chairOffset;
+  const radiusZ = tableLength / 2 + chairOffset;
+  const segments = Math.max(240, count * 80);
+
+  // Sample the ellipse and distribute chairs by arc length.
+  const points: THREE.Vector2[] = [];
+  const cumulative: number[] = [];
+
+  let totalPerimeter = 0;
+  let prev = new THREE.Vector2(radiusX, 0);
+
+  cumulative.push(0);
+  points.push(prev.clone());
+
+  for (let i = 1; i <= segments; i++) {
+    const t = (i / segments) * Math.PI * 2;
+    const p = new THREE.Vector2(Math.cos(t) * radiusX, Math.sin(t) * radiusZ);
+
+    totalPerimeter += p.distanceTo(prev);
+    cumulative.push(totalPerimeter);
+    points.push(p);
+
+    prev = p;
+  }
+
+  for (let i = 0; i < count; i++) {
+    const targetLength = ((i + 0.5) / count) * totalPerimeter;
+
+    let index = 1;
+    while (index < cumulative.length && cumulative[index] < targetLength) {
+      index++;
+    }
+
+    const currIndex = Math.min(index, points.length - 1);
+    const prevIndex = Math.max(currIndex - 1, 0);
+    const segmentLength = cumulative[currIndex] - cumulative[prevIndex] || 1;
+    const t = (targetLength - cumulative[prevIndex]) / segmentLength;
+    const point = points[prevIndex].clone().lerp(points[currIndex], t);
+    const rotationY = Math.atan2(-point.x, -point.y);
+
+    result.push({
+      position: [point.x, 0, point.y],
+      rotation: [0, rotationY, 0],
+    });
+  }
+
+  return result;
+}
 export function computeChairLayoutByShape(
   shape: string,
   count: number,
   tableWidth: number,
   tableLength: number,
- 
 ) {
   switch (shape) {
-    // use bounding-box logic
     case "rectangle":
     case "capsule":
     case "oblong":
-    case "oval":
       return rectangleLikeLayout(
         count,
         tableWidth,
         tableLength,
       );
 
-    
-
     case "round":
-         case "oval":
       return computeAngleLayout(
         count,
         tableWidth,
-        tableLength,     
+        tableLength,
       );
 
-        case  "square":
-            return squareLayout(
-                count ,
-                tableLength,
-                tableWidth
-            )
+    case "square":
+      return squareLayout(
+        count,
+        tableLength,
+        tableWidth
+      );
 
+    case "oval":
+      return ellipseLayout(
+        count,
+        tableWidth,
+        tableLength
+      );
   }
 }

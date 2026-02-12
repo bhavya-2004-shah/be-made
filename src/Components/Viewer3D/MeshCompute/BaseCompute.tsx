@@ -92,7 +92,7 @@ function Model({ url, baseShape, color, tableLength, maxLength }: ModelProps) {
         if (child.isMesh && child.material) {
           child.material = child.material.clone();
           child.castShadow = true
-child.receiveShadow = true
+        child.receiveShadow = true
           child.material.map = textures.map;
           child.material.normalMap = textures.normalMap;
           child.material.roughnessMap = textures.roughnessMap;
@@ -100,7 +100,9 @@ child.receiveShadow = true
           
             child.material.metalness = color.metalnessValue ?? 0.6;
         child.material.roughness = color.roughnessValue ?? 0.4;
+        console.log(color)
 
+        child.material.color = color.name === "Gold" || color.name === "Brass Break" ? new THREE.Color('#f5e8d0') : new THREE.Color('#ffffff')
         
           child.material.needsUpdate = true;
         }

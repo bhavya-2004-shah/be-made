@@ -24,7 +24,7 @@ export const CAMERA_VIEWS: Record<
     up: new THREE.Vector3(0, 0, -1),
   },
   front: {
-   pos: new THREE.Vector3(0, 0.85, 3),
+   pos: new THREE.Vector3(0, 0.85, 3.5),
   look: new THREE.Vector3(0, 0.3, 0),
   up: new THREE.Vector3(0, 5, 0),
   },

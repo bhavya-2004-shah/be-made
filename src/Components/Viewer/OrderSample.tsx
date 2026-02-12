@@ -14,6 +14,7 @@ export const OrderSampleCard = ({
 }: OrderSampleProps) => {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return;
       if (e.key === "Escape") onClose();
     };
 

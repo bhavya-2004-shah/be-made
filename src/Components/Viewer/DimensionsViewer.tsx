@@ -1,4 +1,4 @@
-import { observer } from "mobx-react-lite";
+﻿import { observer } from "mobx-react-lite";
 import { useMainContext } from "../../hooks/useMainContext";
 
 export const DimensionsViewer = observer(() => {
@@ -33,7 +33,7 @@ export const DimensionsViewer = observer(() => {
 
   return (
     <div className="w-full  bg-gray-50 border-l border-gray-200 p-6">
-      <h2 className="text-3xl font-semibold mb-4 text-gray-900">
+      <h2 data-nav-anchor className="text-3xl font-semibold mb-4 text-gray-900">
         Dimensions
       </h2>
 

@@ -36,6 +36,17 @@ const ChairRenderer = ({ chairUrl, selectedChairColor, layout }: ChairRendererPr
     legNormal: selectedChairColor.chairLegNormal,
     legRoughness: selectedChairColor.chairLegRoughness,
   });
+const maxAniso = 16;
+
+textures.topMap.anisotropy = maxAniso;
+textures.topNormal.anisotropy = maxAniso;
+textures.topRoughness.anisotropy = maxAniso;
+textures.topMetalness.anisotropy = maxAniso;
+
+textures.legMap.anisotropy = maxAniso;
+textures.legNormal.anisotropy = maxAniso;
+textures.legRoughness.anisotropy = maxAniso;
+textures.legMetalness.anisotropy = maxAniso;
 
   textures.topMap.colorSpace = THREE.SRGBColorSpace;
   textures.legMap.colorSpace = THREE.SRGBColorSpace;
@@ -47,7 +58,7 @@ const ChairRenderer = ({ chairUrl, selectedChairColor, layout }: ChairRendererPr
       if (!child.isMesh) return;
 
       child.castShadow = true;
-      child.receiveShadow = true;
+      
 
       if (child.name === "Top") {
         child.material = new THREE.MeshStandardMaterial({

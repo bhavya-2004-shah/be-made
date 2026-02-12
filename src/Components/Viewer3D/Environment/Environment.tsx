@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { useThree, useLoader } from "@react-three/fiber";
 import { Environment as DreiEnvironment } from "@react-three/drei";
+import { useEffect } from "react";
 
 function Environment() {
   const { scene } = useThree();
@@ -12,7 +13,15 @@ function Environment() {
   );
 
   texture.colorSpace = THREE.SRGBColorSpace;
-  scene.background = texture;
+
+  useEffect(() => {
+    scene.background = texture;
+    return () => {
+      if (scene.background === texture) {
+        scene.background = null;
+      }
+    };
+  }, [scene, texture]);
 
   return (
     <>

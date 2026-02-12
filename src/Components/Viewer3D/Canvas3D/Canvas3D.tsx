@@ -15,9 +15,17 @@ const Canvas3D = observer(({ children }: { children: React.ReactNode }) => {
     >
       <Canvas
         className="canvas-3d"
-        shadows
+        shadows = { true}
         camera={{ fov: 50 }}
-        gl={{ preserveDrawingBuffer: true, antialias: true }}
+        dpr={[1, 2]}
+        performance={{ min: 0.7, max: 1, debounce: 200 }}
+        gl={{
+          antialias: true,
+          powerPreference: "high-performance",
+          preserveDrawingBuffer: false,
+          alpha: false,
+          stencil: false,
+        }}
       >
         <Suspense fallback={<Loader />}>{children}</Suspense>
       </Canvas>

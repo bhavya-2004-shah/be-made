@@ -46,6 +46,74 @@ const totalPrice =stateManager.designManager.pricingManager.totalPrice;
 
 console.log(tablePrice)
 
+  const waitForNextPaint = () =>
+    new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
+
+  const captureCanvas = () => {
+    const canvas = document.querySelector("canvas.canvas-3d") as
+      | HTMLCanvasElement
+      | null;
+    if (!canvas) return null;
+    return canvas.toDataURL("image/png");
+  };
+
+  const captureForPlaceOrder = async () => {
+    const currentView = stateManager.designManager.cameraView;
+    const chairCount = stateManager.designManager.chairCountManager.count;
+
+    // Capture the final active view (used when chairs exist).
+    await waitForNextPaint();
+    const finalCapture = captureCanvas();
+    if (finalCapture) {
+      localStorage.setItem("bemade:lastCaptureFinal", finalCapture);
+    }
+
+    // Also capture the right-side table-only view (used when chair count is 0).
+    if (chairCount <= 0) {
+      stateManager.designManager.setCameraView("rightSide");
+      await waitForNextPaint();
+      const rightCapture = captureCanvas();
+      if (rightCapture) {
+        localStorage.setItem("bemade:lastCaptureRight", rightCapture);
+      }
+    }
+
+    // Backward-compatible fallback key used elsewhere.
+    if (finalCapture) {
+      localStorage.setItem("bemade:lastCapture", finalCapture);
+    }
+
+    // Restore previous view state before leaving this screen.
+    stateManager.designManager.setCameraView(currentView);
+  };
+
+  const persistOrderSnapshot = () => {
+    const orderSnapshot = {
+      tableTexture: tableTexture || "-",
+      baseShape: baseShape || "-",
+      baseColor: baseColor || "-",
+      topLength,
+      topWidth,
+      tableTop: tableTop || "-",
+      chairType: chairType || "-",
+      chairColor: chairColor || "-",
+      chairQuantity,
+      tablePrice,
+      chairPrice,
+      totalPrice,
+    };
+
+    localStorage.setItem("bemade:lastOrderSnapshot", JSON.stringify(orderSnapshot));
+  };
+
+  const handlePlaceOrder = async () => {
+    persistOrderSnapshot();
+    await captureForPlaceOrder();
+    navigate("/place-order");
+  };
+
   return (
     <div className="w-full p-5 mx-auto font-sans text-gray-800 pb-20">
       {/* Header */}
@@ -57,7 +125,7 @@ console.log(tablePrice)
       </div>
 
       {/* Section Title */}
-      <h2 className="text-lg font-medium mb-3">YOUR BUILD</h2>
+      <h2 data-nav-anchor className="text-lg font-medium mb-3">YOUR BUILD</h2>
 
       {/* Build Details */}
       <div className="divide-y divide-gray-200 text-[15px]">
@@ -156,7 +224,7 @@ console.log(tablePrice)
 
 {/* Place Order Button */}
 <button
-  onClick={() => navigate("/place-order")}
+  onClick={handlePlaceOrder}
   className="mt-6 w-full bg-black text-white py-4 rounded-full text-sm font-semibold tracking-wide hover:bg-gray-900 transition"
 >
   PLACE ORDER

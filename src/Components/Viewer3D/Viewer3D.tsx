@@ -51,10 +51,13 @@ export const Viewer3D = () => {
         receiveShadow={true}
       >
         <planeGeometry args={[14, 14]} />
-        <shadowMaterial opacity={0.2} />
+        <shadowMaterial opacity={0.12} />
       </mesh>
 
-      <OrbitControls />
+      <OrbitControls
+        makeDefault
+       
+      />
     </Canvas3D>
   );
 };

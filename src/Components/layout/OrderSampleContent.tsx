@@ -1,13 +1,28 @@
 import { observer } from "mobx-react-lite";
+import { useEffect, useState } from "react";
 import { useMainContext } from "../../hooks/useMainContext";
 
 export const OrderSampleContent = observer(() => {
   const stateManager = useMainContext();
+  const [selectedTexture, setSelectedTexture] = useState<any | null>(null);
 
   const textures =
     stateManager.designManager.tableTextureManager.textures || [];
 
- 
+  useEffect(() => {
+    if (!selectedTexture) return;
+
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedTexture(null);
+      }
+    };
+
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [selectedTexture]);
 
   return (
     <div className="space-y-8">
@@ -36,6 +51,7 @@ export const OrderSampleContent = observer(() => {
           {textures.map((texture: any) => (
             <div
               key={texture.id}
+              onClick={() => setSelectedTexture(texture)}
               className="aspect-square rounded-xl overflow-hidden border hover:ring-2 ring-black transition cursor-pointer"
             >
               <img
@@ -47,6 +63,36 @@ export const OrderSampleContent = observer(() => {
           ))}
         </div>
       </div>
+
+      {/* Texture Preview Modal */}
+      {selectedTexture && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setSelectedTexture(null)}
+        >
+          <div
+            className="w-full max-w-[380px] rounded-2xl bg-[#efefef] p-3 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="overflow-hidden rounded-xl bg-white">
+              <img
+                src={ selectedTexture.sample_previewUrl}
+                alt={selectedTexture.name}
+                className="h-[640px] w-full object-cover"
+              />
+            </div>
+
+            <div className="px-2 pt-3 pb-1">
+              <h4 className="text-3xl font-semibold text-gray-900">
+                {selectedTexture.name}
+              </h4>
+              <p className="mt-1 text-2xl leading-7 text-gray-700">
+                {selectedTexture.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Buy Button */}
       <div className="sticky bottom-0 pt-6 bg-white">

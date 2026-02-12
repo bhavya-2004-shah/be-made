@@ -8,25 +8,23 @@ export const ChairShapeViewer = observer(() => {
 
   const chairs = chairManager.chairShapes;
   const selectedChair = chairManager.selectedChair;
- 
-  
+
   return (
-      <div className="flex  w-full">
-      {/* ================= RIGHT SIDE (35% - selector panel) ================= */}
+    <div className="flex w-full">
+      {/* ================= RIGHT SIDE (selector panel) ================= */}
       <div className="w-full bg-white border-l border-gray-200 overflow-y-auto">
-        <div className="px-6 py-5">
+        <div className="px-4 md:px-6 py-4 md:py-5">
           {/* Title */}
-          <h2 className="text-xl font-semibold mb-6 text-gray-900">
+          <h2 data-nav-anchor className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-gray-900">
             Choose Chair
           </h2>
 
           {/* Grid */}
-          <div className="grid grid-cols-3 gap-6 text-center">
+          <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-3 gap-4 md:gap-6 text-center">
             {chairs &&
               chairs.map((chair: any) => {
-                  const isSelected = selectedChair?.id === chair.id;
-                  
-                  console.log("the chaors are here",chair.previewUrl)
+                const isSelected = selectedChair?.id === chair.id;
+
                 return (
                   <div
                     key={chair.id}
@@ -35,9 +33,9 @@ export const ChairShapeViewer = observer(() => {
                   >
                     {/* Card */}
                     <div
-                      className={`text-center
-                        relative rounded-2xl bg-gray-100
-                        h-40 flex items-center justify-center
+                      className={`relative rounded-2xl bg-gray-100
+                        aspect-square
+                        flex items-center justify-center
                         transition
                         ${isSelected ? "ring-2 ring-gray-900" : ""}
                       `}
@@ -45,8 +43,8 @@ export const ChairShapeViewer = observer(() => {
                       {/* Small preview */}
                       <img
                         src={chair.previewUrl}
-                        alt={chair}
-                        className="w-auto object-contain opacity-90"
+                        alt={chair.name}
+                        className="max-h-[80%] w-auto object-contain opacity-90"
                       />
 
                       {/* Selected check */}
@@ -58,8 +56,8 @@ export const ChairShapeViewer = observer(() => {
                     </div>
 
                     {/* Name */}
-                    <p className="mt-2 text-sm text-gray-900 font-medium">
-                    {chair.name}
+                    <p className="mt-2 text-xs sm:text-sm text-gray-900 font-medium">
+                      {chair.name}
                     </p>
                   </div>
                 );
@@ -70,3 +68,4 @@ export const ChairShapeViewer = observer(() => {
     </div>
   );
 });
+

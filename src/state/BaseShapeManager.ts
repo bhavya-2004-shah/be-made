@@ -17,6 +17,7 @@ export class BaseShapeManager {
 
   setSelectedBaseShape(shape: any) {
     this.selectedBaseShape = shape;
+    this.designManager.setCameraView("front");
 
     // Tell color manager to reset colors for this shape
     this.designManager.baseColorManager.setColors(shape?.colors || []);

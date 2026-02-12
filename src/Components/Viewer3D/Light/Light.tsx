@@ -8,7 +8,7 @@ export const Light = () => {
       <directionalLight
         position={[1.5, 6, 3.5]}
         intensity={1.35}
-        castShadow
+        castShadow = {true}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-near={0.5}

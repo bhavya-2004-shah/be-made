@@ -17,7 +17,7 @@ export const TableTopViewer = observer(() => {
       <div className="w-full bg-white border-l border-gray-200 overflow-y-auto">
         <div className="px-6 py-5">
           {/* Title */}
-          <h2 className="text-xl font-semibold mb-6 text-gray-900">
+          <h2 data-nav-anchor className="text-xl font-semibold mb-6 text-gray-900">
             Choose Tabletop
           </h2>
 
@@ -90,3 +90,4 @@ export const TableTopViewer = observer(() => {
     </div>
   );
 });
+
