@@ -1,9 +1,14 @@
 import { observer } from "mobx-react-lite";
-import {useNavigate} from "react-router-dom"
-
+import { useNavigate } from "react-router-dom";
 import { useMainContext } from "../../hooks/useMainContext";
 
 export const OrderSummaryViewer = observer(() => {
+  const SAMPLE_ORDER_KEY = "bemade:sampleOrder";
+  const PLACE_ORDER_CAPTURE_KEY = "bemade:placeOrderRightChairCapture";
+  const PLACE_ORDER_CAPTURE_EXPIRY_KEY =
+    "bemade:placeOrderRightChairCaptureExpiresAt";
+  const PLACE_ORDER_CAPTURE_TTL_MS = 15 * 60 * 1000;
+
   const navigate = useNavigate();
   const stateManager = useMainContext();
 
@@ -40,52 +45,93 @@ export const OrderSummaryViewer = observer(() => {
   const chairQuantity =
     stateManager.designManager.chairCountManager.count;
 
-    const tablePrice = stateManager.designManager.pricingManager.tablePrice;
-const chairPrice = stateManager.designManager.pricingManager.chairPrice;
-const totalPrice =stateManager.designManager.pricingManager.totalPrice;
+  const tablePrice =
+    stateManager.designManager.pricingManager.tablePrice;
 
-console.log(tablePrice)
+  const chairPrice =
+    stateManager.designManager.pricingManager.chairPrice;
+
+  const totalPrice =
+    stateManager.designManager.pricingManager.totalPrice;
 
   const waitForNextPaint = () =>
     new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => resolve())
+      )
     );
 
+  const sleep = (ms: number) =>
+    new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
   const captureCanvas = () => {
-    const canvas = document.querySelector("canvas.canvas-3d") as
-      | HTMLCanvasElement
-      | null;
+    const canvas = document.querySelector(
+      "canvas.canvas-3d, canvas"
+    ) as HTMLCanvasElement | null;
+
     if (!canvas) return null;
-    return canvas.toDataURL("image/png");
-  };
 
-  const captureForPlaceOrder = async () => {
-    const currentView = stateManager.designManager.cameraView;
-    const chairCount = stateManager.designManager.chairCountManager.count;
+    const maxWidth = 1280;
+    const scale = Math.min(1, maxWidth / canvas.width);
+    const targetWidth = Math.max(1, Math.floor(canvas.width * scale));
+    const targetHeight = Math.max(1, Math.floor(canvas.height * scale));
 
-    // Capture the final active view (used when chairs exist).
-    await waitForNextPaint();
-    const finalCapture = captureCanvas();
-    if (finalCapture) {
-      localStorage.setItem("bemade:lastCaptureFinal", finalCapture);
-    }
+    const out = document.createElement("canvas");
+    out.width = targetWidth;
+    out.height = targetHeight;
+    const ctx = out.getContext("2d");
+    if (!ctx) return null;
 
-    // Also capture the right-side table-only view (used when chair count is 0).
-    if (chairCount <= 0) {
-      stateManager.designManager.setCameraView("rightSide");
-      await waitForNextPaint();
-      const rightCapture = captureCanvas();
-      if (rightCapture) {
-        localStorage.setItem("bemade:lastCaptureRight", rightCapture);
+    try {
+      ctx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+      return out.toDataURL("image/jpeg", 0.82);
+    } catch {
+      try {
+        return canvas.toDataURL("image/jpeg", 0.82);
+      } catch {
+        return null;
       }
     }
+  };
 
-    // Backward-compatible fallback key used elsewhere.
-    if (finalCapture) {
-      localStorage.setItem("bemade:lastCapture", finalCapture);
+  // Always capture from right-side view
+  const captureForPlaceOrder = async () => {
+    const currentView = stateManager.designManager.cameraView;
+
+    // Switch to right-chair camera before place-order navigation.
+    stateManager.designManager.setCameraView("rightChairView");
+
+    // Wait for camera interpolation + a couple of frames.
+    await sleep(950);
+    await waitForNextPaint();
+    await waitForNextPaint();
+
+    let capture = captureCanvas();
+    if (!capture) {
+      await waitForNextPaint();
+      capture = captureCanvas();
     }
 
-    // Restore previous view state before leaving this screen.
+    const fallbackCapture = localStorage.getItem("bemade:lastCapture");
+    const finalCapture = capture || fallbackCapture;
+
+    try {
+      if (finalCapture) {
+        localStorage.setItem(PLACE_ORDER_CAPTURE_KEY, finalCapture);
+        localStorage.setItem(
+          PLACE_ORDER_CAPTURE_EXPIRY_KEY,
+          String(Date.now() + PLACE_ORDER_CAPTURE_TTL_MS)
+        );
+      } else {
+        localStorage.removeItem(PLACE_ORDER_CAPTURE_KEY);
+        localStorage.removeItem(PLACE_ORDER_CAPTURE_EXPIRY_KEY);
+      }
+    } catch {
+      localStorage.removeItem(PLACE_ORDER_CAPTURE_KEY);
+      localStorage.removeItem(PLACE_ORDER_CAPTURE_EXPIRY_KEY);
+    }
+
+    // Restore previous view
     stateManager.designManager.setCameraView(currentView);
   };
 
@@ -105,10 +151,14 @@ console.log(tablePrice)
       totalPrice,
     };
 
-    localStorage.setItem("bemade:lastOrderSnapshot", JSON.stringify(orderSnapshot));
+    localStorage.setItem(
+      "bemade:lastOrderSnapshot",
+      JSON.stringify(orderSnapshot)
+    );
   };
 
   const handlePlaceOrder = async () => {
+    localStorage.removeItem(SAMPLE_ORDER_KEY);
     persistOrderSnapshot();
     await captureForPlaceOrder();
     navigate("/place-order");
@@ -125,7 +175,9 @@ console.log(tablePrice)
       </div>
 
       {/* Section Title */}
-      <h2 data-nav-anchor className="text-lg font-medium mb-3">YOUR BUILD</h2>
+      <h2 data-nav-anchor className="text-lg font-medium mb-3">
+        YOUR BUILD
+      </h2>
 
       {/* Build Details */}
       <div className="divide-y divide-gray-200 text-[15px]">
@@ -204,33 +256,32 @@ console.log(tablePrice)
         </div>
       </div>
 
-        {/* Delivery Info */}
-<div className="mt-6 bg-gray-200 rounded-2xl p-5 text-sm text-gray-700 leading-relaxed">
-  <p className="font-semibold text-gray-800 mb-2">
-    Estimated Delivery:
-  </p>
+      {/* Delivery Info */}
+      <div className="mt-6 bg-gray-200 rounded-2xl p-5 text-sm text-gray-700 leading-relaxed">
+        <p className="font-semibold text-gray-800 mb-2">
+          Estimated Delivery:
+        </p>
 
-  <p className="mb-2">
-    Our products are all unique, made to order and this takes some
-    time in our factory.
-  </p>
+        <p className="mb-2">
+          Our products are all unique, made to order and this takes
+          some time in our factory.
+        </p>
 
-  <p>
-    Once your order has been made, we will notify and arrange
-    delivery with you. Currently the estimated delivery times are
-    within <span className="font-semibold">14–21 days.</span>
-  </p>
-</div>
+        <p>
+          Once your order has been made, we will notify and arrange
+          delivery with you. Currently the estimated delivery times
+          are within{" "}
+          <span className="font-semibold">14–21 days.</span>
+        </p>
+      </div>
 
-{/* Place Order Button */}
-<button
-  onClick={handlePlaceOrder}
-  className="mt-6 w-full bg-black text-white py-4 rounded-full text-sm font-semibold tracking-wide hover:bg-gray-900 transition"
->
-  PLACE ORDER
-</button>
-
-
+      {/* Place Order Button */}
+      <button
+        onClick={handlePlaceOrder}
+        className="mt-6 w-full bg-black text-white py-4 rounded-full text-sm font-semibold tracking-wide hover:bg-gray-900 transition"
+      >
+        PLACE ORDER
+      </button>
     </div>
   );
 });

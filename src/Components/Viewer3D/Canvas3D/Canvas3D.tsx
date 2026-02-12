@@ -17,7 +17,7 @@ const Canvas3D = observer(({ children }: { children: React.ReactNode }) => {
         className="canvas-3d"
         shadows = { true}
         camera={{ fov: 50 }}
-        dpr={[1, 2]}
+        dpr={[1, 1.5]}
         performance={{ min: 0.7, max: 1, debounce: 200 }}
         gl={{
           antialias: true,

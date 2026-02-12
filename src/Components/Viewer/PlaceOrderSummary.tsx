@@ -3,7 +3,26 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMainContext } from "../../hooks/useMainContext";
 
+type SampleOrderItem = {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+};
+
+type SampleOrderPayload = {
+  items: SampleOrderItem[];
+  quantity: number;
+  totalPrice: number;
+  createdAt: number;
+};
+
 export const PlaceOrderSummary = observer(() => {
+  const PLACE_ORDER_CAPTURE_KEY = "bemade:placeOrderRightChairCapture";
+  const PLACE_ORDER_CAPTURE_EXPIRY_KEY =
+    "bemade:placeOrderRightChairCaptureExpiresAt";
+  const SAMPLE_ORDER_KEY = "bemade:sampleOrder";
+
   const navigate = useNavigate();
   const stateManager = useMainContext();
   const design = stateManager.designManager;
@@ -23,8 +42,23 @@ export const PlaceOrderSummary = observer(() => {
     chairPrice: number;
     totalPrice: number;
   } | null>(null);
+  const [sampleOrder, setSampleOrder] = useState<SampleOrderPayload | null>(null);
 
   useEffect(() => {
+    const rawSampleOrder = localStorage.getItem(SAMPLE_ORDER_KEY);
+    if (rawSampleOrder) {
+      try {
+        const parsed = JSON.parse(rawSampleOrder) as SampleOrderPayload;
+        if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+          setSampleOrder(parsed);
+          setPreviewImage(null);
+          return;
+        }
+      } catch {
+        setSampleOrder(null);
+      }
+    }
+
     const rawSnapshot = localStorage.getItem("bemade:lastOrderSnapshot");
     if (rawSnapshot) {
       try {
@@ -34,17 +68,23 @@ export const PlaceOrderSummary = observer(() => {
       }
     }
 
-    const chairCount = design.chairCountManager.count;
-    const finalCapture = localStorage.getItem("bemade:lastCaptureFinal");
-    const rightCapture = localStorage.getItem("bemade:lastCaptureRight");
-    const legacyCapture = localStorage.getItem("bemade:lastCapture");
+    const capture =
+      localStorage.getItem(PLACE_ORDER_CAPTURE_KEY) ||
+      localStorage.getItem("bemade:lastCapture");
+    const expiryRaw = localStorage.getItem(
+      PLACE_ORDER_CAPTURE_EXPIRY_KEY
+    );
+    const expiry = expiryRaw ? Number(expiryRaw) : 0;
+    const isValid = !!capture && Number.isFinite(expiry) && Date.now() < expiry;
 
-    if (chairCount > 0) {
-      setPreviewImage(finalCapture || legacyCapture);
+    if (isValid) {
+      setPreviewImage(capture);
     } else {
-      setPreviewImage(rightCapture || finalCapture || legacyCapture);
+      setPreviewImage(null);
+      localStorage.removeItem(PLACE_ORDER_CAPTURE_KEY);
+      localStorage.removeItem(PLACE_ORDER_CAPTURE_EXPIRY_KEY);
     }
-  }, [design.chairCountManager.count]);
+  }, []);
 
   const tableTexture =
     snapshot?.tableTexture ||
@@ -75,19 +115,28 @@ export const PlaceOrderSummary = observer(() => {
   const chairQuantity =
     snapshot?.chairQuantity ?? design.chairCountManager.count;
 
-  const summaryRows = [
-    { label: "Table Top", value: tableTexture },
-    { label: "Base", value: baseShape },
-    { label: "Base Colour", value: baseColor },
-    {
-      label: "Dimensions",
-      value: `Length: ${topLength} mm x Width: ${topWidth} mm`,
-    },
-    { label: "Table Top Shape", value: tableTop },
-    { label: "Chair Type", value: chairType },
-    { label: "Chair Colour", value: chairColor },
-    { label: "Chair Quantity", value: String(chairQuantity) },
-  ];
+  const sampleNames = sampleOrder?.items.map((item) => item.name).join(", ") || "-";
+
+  const summaryRows = sampleOrder
+    ? [
+        { label: "Order Type", value: "Texture Samples" },
+        { label: "Selected Textures", value: sampleNames },
+        { label: "Texture Quantity", value: String(sampleOrder.quantity) },
+        { label: "Sample Total", value: `GBP ${sampleOrder.totalPrice}` },
+      ]
+    : [
+        { label: "Table Top", value: tableTexture },
+        { label: "Base", value: baseShape },
+        { label: "Base Colour", value: baseColor },
+        {
+          label: "Dimensions",
+          value: `Length: ${topLength} mm x Width: ${topWidth} mm`,
+        },
+        { label: "Table Top Shape", value: tableTop },
+        { label: "Chair Type", value: chairType },
+        { label: "Chair Colour", value: chairColor },
+        { label: "Chair Quantity", value: String(chairQuantity) },
+      ];
 
   const inputClassName =
     "h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none placeholder:text-gray-400 focus:border-gray-400";
@@ -206,19 +255,21 @@ export const PlaceOrderSummary = observer(() => {
         </section>
 
         <aside className="rounded-xl bg-[#ececec] p-6">
-          <div className="mb-5 h-[260px] overflow-hidden rounded-lg bg-[#dddddd]">
-            {previewImage ? (
-              <img
-                src={previewImage}
-                alt="Final configured table and chairs"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-gray-500">
-                Save the canvas image once from the viewer to show final table + chairs preview here.
-              </div>
-            )}
-          </div>
+          {!sampleOrder && (
+            <div className="mb-5 h-[260px] overflow-hidden rounded-lg bg-[#dddddd]">
+              {previewImage ? (
+                <img
+                  src={previewImage}
+                  alt="Final configured table and chairs"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center px-6 text-center text-sm text-gray-500">
+                  Save the canvas image once from the viewer to show final table + chairs preview here.
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mb-4">
             <h3 className="text-5xl font-medium text-black">
@@ -230,7 +281,9 @@ export const PlaceOrderSummary = observer(() => {
           </div>
 
           <hr className="my-4 border-gray-300" />
-          <h4 className="mb-3 text-3xl font-medium text-gray-700">YOUR BUILD</h4>
+          <h4 className="mb-3 text-3xl font-medium text-gray-700">
+            {sampleOrder ? "SAMPLE DETAILS" : "YOUR BUILD"}
+          </h4>
 
           <div className="text-sm">
             {summaryRows.map((row) => (

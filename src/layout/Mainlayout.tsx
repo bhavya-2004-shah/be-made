@@ -3,12 +3,52 @@ import { Footer } from "../Components/layout/Footer";
 import { Viewer3D } from "../Components/Viewer3D/Viewer3D";
 import { Viewer } from "../Components/Viewer";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { observer } from "mobx-react-lite";
+import { useProgress } from "@react-three/drei";
 import type { NavSectionKey } from "../Components/layout/Navbar";
+import { useMainContext } from "../hooks/useMainContext";
+import { ConfiguratorBootLoader } from "../Components/Viewer3D/Loader/ConfiguratorBootLoader";
 
-export const MainLayout = () => {
+export const MainLayout = observer(() => {
+  const PLACE_ORDER_CAPTURE_KEY = "bemade:placeOrderRightChairCapture";
+  const PLACE_ORDER_CAPTURE_EXPIRY_KEY =
+    "bemade:placeOrderRightChairCaptureExpiresAt";
+
+  const stateManager = useMainContext();
+  const [showBootLoader, setShowBootLoader] = useState(true);
   const panelRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<NavSectionKey>("base");
   const logoPath = "/assets/images/logo.png";
+  const { active: assetsLoading, progress } = useProgress();
+
+  const design = stateManager.designManager;
+  const mesh = stateManager.design3DManager.meshManager;
+
+  const defaultsReady = Boolean(
+    design.baseShapeManager.selectedBaseShape &&
+      design.baseColorManager.selectedBaseColor &&
+      design.tableTopManager.selectedTableTopData &&
+      design.tableTextureManager.selectedTextureData &&
+      mesh.baseShapeModelUrl &&
+      mesh.topShapeModelUrl &&
+      mesh.topShapeMdfUrl
+  );
+
+  useEffect(() => {
+    localStorage.removeItem(PLACE_ORDER_CAPTURE_KEY);
+    localStorage.removeItem(PLACE_ORDER_CAPTURE_EXPIRY_KEY);
+  }, []);
+
+  useEffect(() => {
+    if (!showBootLoader) return;
+    if (!defaultsReady || assetsLoading) return;
+
+    const timer = window.setTimeout(() => {
+      setShowBootLoader(false);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [showBootLoader, defaultsReady, assetsLoading]);
 
   const updateActiveSection = useCallback(() => {
     const panel = panelRef.current;
@@ -74,6 +114,8 @@ export const MainLayout = () => {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
+      {showBootLoader && <ConfiguratorBootLoader progress={progress} />}
+
       {/* Navbar */}
       <Navbar
         activeSection={activeSection}
@@ -102,4 +144,4 @@ export const MainLayout = () => {
       <Footer />
     </div>
   );
-};
+});

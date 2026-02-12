@@ -1,21 +1,25 @@
 import { OrderSampleCard } from "../Viewer/OrderSample";
 import { useState } from "react";
 import { OrderSampleContent } from "./OrderSampleContent";
+import { useNavigate } from "react-router-dom";
+
+
 
 export type NavSectionKey =
-  | "base"
+| "base"
   | "base-color"
   | "top-color"
   | "top-shape"
   | "dimension"
   | "chair"
   | "summary";
-
-type NavbarProps = {
-  activeSection: NavSectionKey;
-  onSectionClick: (section: NavSectionKey) => void;
-  logoSrc?: string;
-};
+  
+  type NavbarProps = {
+    activeSection: NavSectionKey;
+    onSectionClick: (section: NavSectionKey) => void;
+    logoSrc?: string;
+  };
+ 
 
 const NAV_ITEMS: { key: NavSectionKey; label: string }[] = [
   { key: "base", label: "BASE" },
@@ -27,19 +31,19 @@ const NAV_ITEMS: { key: NavSectionKey; label: string }[] = [
   { key: "summary", label: "SUMMARY" },
 ];
 
-export const Navbar = ({ activeSection, onSectionClick, logoSrc }: NavbarProps) => {
+export const Navbar = ({ activeSection, onSectionClick }: NavbarProps) => {
   const [open, setOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false);
+ const navigate = useNavigate();
 
   return (
     <div className="w-full bg-white border-b flex flex-col">
-      <div className="h-16 flex items-center justify-between px-4 md:px-6 lg:px-8">
+      <div className="h-16 flex items-center justify-between px-10 md:px-6 lg:px-8">
         
           <img
             src={"/assets/images/header_logo.svg"}
             alt="BeMade"
             className="h-8 md:h-10 w-auto object-contain"
-            onError={() => setLogoError(true)}
+           
           />
         
 
@@ -64,7 +68,9 @@ export const Navbar = ({ activeSection, onSectionClick, logoSrc }: NavbarProps) 
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <button className="text-xs md:text-sm text-gray-700 whitespace-nowrap">
+          <button 
+           onClick={() => navigate("/login")}
+          className="text-xs md:text-sm text-gray-700 whitespace-nowrap ">
             Login / Register
           </button>
 

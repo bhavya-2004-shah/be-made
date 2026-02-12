@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useMemo, useState } from "react";
 import type { RefObject } from "react";
 import { useMainContext } from "../../../hooks/useMainContext";
+import { Save, Share2, Maximize2 } from "lucide-react";
 
 type Props = {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -153,38 +154,40 @@ export const CanvasActionButtons = observer(({ containerRef }: Props) => {
       </div>
 
       {/* Top-right action buttons */}
-      <div className="absolute right-4 top-4 z-30 flex gap-2">
-        <button
-          type="button"
-          aria-label="Save"
-          title="Save"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition disabled:opacity-60"
-        >
-          💾
-        </button>
+      {/* Top-right action buttons */}
+<div className="absolute right-4 top-4 z-30 flex gap-2">
+  <button
+    type="button"
+    aria-label="Save"
+    title="Save"
+    onClick={handleSave}
+    disabled={isSaving}
+    className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition disabled:opacity-60"
+  >
+    <Save size={18} />
+  </button>
 
-        <button
-          type="button"
-          aria-label="Share"
-          title="Share"
-          onClick={handleShare}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
-        >
-          🔗
-        </button>
+  <button
+    type="button"
+    aria-label="Share"
+    title="Share"
+    onClick={handleShare}
+    className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+  >
+    <Share2 size={18} />
+  </button>
 
-        <button
-          type="button"
-          aria-label="Fullscreen"
-          title="Fullscreen"
-          onClick={handleFullscreen}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
-        >
-          ⛶
-        </button>
-      </div>
+  <button
+    type="button"
+    aria-label="Fullscreen"
+    title="Fullscreen"
+    onClick={handleFullscreen}
+    className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-gray-100 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+  >
+    <Maximize2 size={18} />
+  </button>
+</div>
+
     </>
   );
 });
