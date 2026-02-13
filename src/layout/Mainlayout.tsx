@@ -149,8 +149,8 @@ export const MainLayout = observer(() => {
     if (
       viewParam === "front" ||
       viewParam === "top" ||
-      viewParam === "left" ||
-      viewParam === "right" ||
+      viewParam === "leftSide" ||
+      viewParam === "rightSide" ||
       viewParam === "twoChairView" ||
       viewParam === "rightChairView" ||
       viewParam === "topChairView"
