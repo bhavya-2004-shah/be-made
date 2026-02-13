@@ -18,11 +18,17 @@ export const MainLayout = observer(() => {
   const [showBootLoader, setShowBootLoader] = useState(true);
   const panelRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<NavSectionKey>("base");
+  const shareParamsRef = useRef<URLSearchParams | null>(null);
+  const shareAppliedRef = useRef(false);
   const logoPath = "/assets/images/logo.png";
   const { active: assetsLoading, progress } = useProgress();
 
   const design = stateManager.designManager;
   const mesh = stateManager.design3DManager.meshManager;
+  const baseData = design.baseShapeManager.baseInfoJson;
+  const topData = design.tableTopManager.tableTopJson;
+  const textureData = design.tableTextureManager.texturesJson;
+  const chairData = design.chairManager.chairsInfoJson;
 
   const defaultsReady = Boolean(
     design.baseShapeManager.selectedBaseShape &&
@@ -38,6 +44,122 @@ export const MainLayout = observer(() => {
     localStorage.removeItem(PLACE_ORDER_CAPTURE_KEY);
     localStorage.removeItem(PLACE_ORDER_CAPTURE_EXPIRY_KEY);
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    shareParamsRef.current = params;
+    if (!params.toString()) {
+      shareAppliedRef.current = true;
+      return;
+    }
+
+    // Trigger data loads so we can apply the shared config once ready.
+    void design.baseShapeManager.baseShapes;
+    void design.tableTopManager.tableTops;
+    void design.tableTextureManager.textures;
+    void design.chairManager.chairShapes;
+  }, [design]);
+
+  useEffect(() => {
+    if (shareAppliedRef.current) return;
+    const params = shareParamsRef.current;
+    if (!params || !params.toString()) {
+      shareAppliedRef.current = true;
+      return;
+    }
+    if (!baseData || !topData || !textureData || !chairData) return;
+
+    const baseId = params.get("base");
+    if (baseId) {
+      const base = baseData.find((item) => item.id === baseId);
+      if (base) {
+        design.baseShapeManager.setSelectedBaseShape(base);
+      }
+    }
+
+    const baseColorId = params.get("baseColor");
+    if (baseColorId) {
+      const baseColor = design.baseColorManager.colors.find(
+        (item) => item.id === baseColorId
+      );
+      if (baseColor) {
+        design.baseColorManager.setSelectedBaseColor(baseColor);
+      }
+    }
+
+    const topId = params.get("top");
+    if (topId) {
+      const top = topData.find((item) => item.id === topId);
+      if (top) {
+        design.tableTopManager.setSelectedTableTop(top.id);
+      }
+    }
+
+    const textureId = params.get("texture");
+    if (textureId) {
+      design.tableTextureManager.setSelectedTexture(textureId);
+    }
+
+    const chairId = params.get("chair");
+    if (chairId) {
+      const chair = chairData.find((item) => item.id === chairId);
+      if (chair) {
+        design.chairManager.setSelectedChair(chair);
+      }
+    }
+
+    const chairColorId = params.get("chairColor");
+    if (chairColorId) {
+      const chairColor = design.chairColorManager.colors.find(
+        (item) => item.id === chairColorId
+      );
+      if (chairColor) {
+        design.chairColorManager.setSelectedChairColor(chairColor);
+      }
+    }
+
+    const lengthValue = Number(params.get("len"));
+    if (Number.isFinite(lengthValue)) {
+      const clamped = Math.min(
+        Math.max(lengthValue, design.dimensionManager.minLength),
+        design.dimensionManager.maxLength
+      );
+      design.dimensionManager.setTopLength(clamped);
+    }
+
+    const widthValue = Number(params.get("wid"));
+    if (Number.isFinite(widthValue)) {
+      const clamped = Math.min(
+        Math.max(widthValue, design.dimensionManager.minWidth),
+        design.dimensionManager.maxWidth
+      );
+      design.dimensionManager.setTopWidth(clamped);
+    }
+
+    const chairCountValue = Number(params.get("chairs"));
+    if (Number.isFinite(chairCountValue)) {
+      const clamped = Math.min(
+        Math.max(chairCountValue, design.chairCountManager.min),
+        design.chairCountManager.max
+      );
+      design.chairCountManager.count = clamped;
+    }
+
+    const viewParam = params.get("view");
+    if (
+      viewParam === "front" ||
+      viewParam === "top" ||
+      viewParam === "left" ||
+      viewParam === "right" ||
+      viewParam === "twoChairView" ||
+      viewParam === "rightChairView" ||
+      viewParam === "topChairView"
+    ) {
+      design.setCameraView(viewParam);
+    }
+
+    shareAppliedRef.current = true;
+  }, [baseData, chairData, design, textureData, topData]);
 
   useEffect(() => {
     if (!showBootLoader) return;

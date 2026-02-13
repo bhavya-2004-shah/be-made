@@ -25,6 +25,16 @@ export class ChairCountManager {
         }
       }
     );
+
+    // Switch to right chair view when chairs are added from zero.
+    reaction(
+      () => this.count,
+      (count, prev) => {
+        if ((prev ?? 0) === 0 && count > 0) {
+          this.designManager.setCameraView("rightChairView");
+        }
+      }
+    );
   }
 
   // increase chair count

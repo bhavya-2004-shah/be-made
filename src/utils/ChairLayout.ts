@@ -8,8 +8,9 @@ function rectangleLikeLayout(
 
 ): ChairTransform[] {
   const result: ChairTransform[] = [];
-    const chairOffset = 1;
-    const minChairGap = 0.75; 
+  const chairOffset = 0.2;
+  const edgeClearance = 0.35;
+  const minChairGap = 0.6;
 
   if (count <= 0) return result;
 
@@ -33,60 +34,70 @@ function rectangleLikeLayout(
     right = remaining - left;
   }
 
-  const spacingTop = Math.max( tableWidth / (top + 1)  , minChairGap);
-  console.log("spacing top ",spacingTop)
-  const spacingBottom =Math.max( tableWidth / (bottom + 1)  , minChairGap)  ;
-  const spacingLeft = tableLength / (left + 1) ;
-  const spacingRight = tableLength / (right + 1);
+  const usableWidth = Math.max(tableWidth - edgeClearance * 2, minChairGap);
+  const usableLength = Math.max(tableLength - edgeClearance * 2, minChairGap);
+
+  const spacingTop =
+    top <= 1 ? 0 : Math.max(usableWidth / (top - 1), minChairGap);
+  const spacingBottom =
+    bottom <= 1 ? 0 : Math.max(usableWidth / (bottom - 1), minChairGap);
+  const spacingLeft =
+    left <= 1 ? 0 : Math.max(usableLength / (left - 1), minChairGap);
+  const spacingRight =
+    right <= 1 ? 0 : Math.max(usableLength / (right - 1), minChairGap);
 
   // top
 // top
-for (let i = 0; i < top; i++) {
-  const totalWidth = (top - 1) * spacingTop;
-  const startX = -totalWidth / 2;
+  for (let i = 0; i < top; i++) {
+    const totalWidth = (top - 1) * spacingTop;
+    const startX = -totalWidth / 2;
 
-  const x = startX + i * spacingTop;
-  const z = tableLength / 2 + chairOffset;
+    const x = startX + i * spacingTop;
+    const z = tableLength / 2 + chairOffset;
 
-  result.push({
-    position: [x, 0, z -0.75],
-    rotation: [0, Math.PI, 0],
-  });
-}
+    result.push({
+      position: [x, 0, z],
+      rotation: [0, Math.PI, 0],
+    });
+  }
 
 
   // bottom
   for (let i = 0; i < bottom; i++) {
-    const totalWidth = (top - 1) * spacingBottom;
+    const totalWidth = (bottom - 1) * spacingBottom;
     const startX = -totalWidth / 2;
 
     const x = startX + i * spacingBottom;
     const z = -tableLength / 2 - chairOffset;
 
     result.push({
-      position: [x, 0, z + 0.75],
+      position: [x, 0, z],
       rotation: [0, 0, 0],
     });
   }
 
   // left
   for (let i = 0; i < left; i++) {
-    const z = -tableLength / 2 + spacingLeft * (i + 1);
-    const x = (-tableWidth / 2 - chairOffset ) - 1;
+    const totalLength = (left - 1) * spacingLeft;
+    const startZ = -totalLength / 2;
+    const z = startZ + i * spacingLeft;
+    const x = -tableWidth / 2 - chairOffset;
 
     result.push({
-      position: [x+1.8, 0, z],
+      position: [x, 0, z],
       rotation: [0, Math.PI / 2, 0],
     });
   }
 
   // right
   for (let i = 0; i < right; i++) {
-    const z = -tableLength / 2 + spacingRight * (i + 1);
+    const totalLength = (right - 1) * spacingRight;
+    const startZ = -totalLength / 2;
+    const z = startZ + i * spacingRight;
     const x = tableWidth / 2 + chairOffset;
 
     result.push({
-      position: [x - 0.75, 0, z],
+      position: [x, 0, z],
       rotation: [0, -Math.PI / 2, 0],
     });
   }
